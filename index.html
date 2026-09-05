@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>색소폰 악보장</title>
     <style>
         :root {
@@ -100,6 +100,7 @@
             position: relative;
             display: flex;
             flex-direction: column;
+            width: 100%;
         }
 
         .view-container {
@@ -108,7 +109,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            padding: 32px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
             opacity: 0;
@@ -132,6 +133,7 @@
             padding-bottom: 16px;
             border-bottom: 1px solid rgba(255,255,255,0.06);
             gap: 12px;
+            flex-shrink: 0;
         }
 
         input, textarea {
@@ -153,6 +155,7 @@
         input {
             font-size: 20px;
             font-weight: bold;
+            flex-shrink: 0;
         }
 
         textarea {
@@ -207,7 +210,7 @@
             display: none;
             background-color: transparent;
             padding: 6px 10px;
-            font-size: 16px;
+            font-size: 18px;
             color: var(--text-muted);
             box-shadow: none;
         }
@@ -264,28 +267,35 @@
         @media (max-width: 768px) {
             #sidebar {
                 width: 100%;
+                display: flex;
             }
 
             #main {
                 display: none;
+                width: 100%;
+                height: 100%;
             }
 
             body.viewing-song #sidebar {
-                display: none;
+                display: none !important;
             }
 
             body.viewing-song #main {
-                display: flex;
+                display: flex !important;
             }
 
             .btn-back {
                 display: inline-block;
             }
 
+            .view-container {
+                padding: 16px;
+            }
+
             .notes-display {
                 font-size: 18px;
             }
-            
+
             textarea {
                 font-size: 18px;
             }
@@ -315,9 +325,9 @@
 
         <div id="viewMode" class="view-container">
             <div class="main-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
                     <button class="btn-back" onclick="App.closeMobileView()">←</button>
-                    <h1 id="viewTitle" style="font-size: 20px;"></h1>
+                    <h1 id="viewTitle" style="font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></h1>
                 </div>
                 <button onclick="App.showEdit()">수정</button>
             </div>
