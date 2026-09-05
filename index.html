@@ -29,7 +29,7 @@
             margin: 0;
             padding: 0;
             width: 100%;
-            height: 100%;
+            height: 100dvh;
             background-color: var(--bg-base);
             color: var(--text-normal);
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -84,7 +84,7 @@
             margin-bottom: 4px;
             color: var(--text-muted);
             font-weight: 500;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color 0.2s;
             word-break: break-all;
         }
 
@@ -97,32 +97,28 @@
             flex-grow: 1;
             height: 100%;
             background-color: var(--bg-main);
-            position: relative;
             display: flex;
             flex-direction: column;
             width: 100%;
+            min-width: 0;
         }
 
         .view-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 24px;
-            display: flex;
+            display: none;
             flex-direction: column;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease, transform 0.2s ease;
-            transform: translateY(6px);
+            height: 100%;
+            padding: 32px;
             overflow-y: auto;
+            animation: fadeIn 0.2s ease;
         }
 
         .view-container.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateY(0);
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .main-header {
@@ -210,7 +206,7 @@
             display: none;
             background-color: transparent;
             padding: 6px 10px;
-            font-size: 18px;
+            font-size: 20px;
             color: var(--text-muted);
             box-shadow: none;
         }
@@ -222,6 +218,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            padding-bottom: 40px;
         }
 
         .note-row {
@@ -264,6 +261,22 @@
             gap: 10px;
         }
 
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        #viewTitle {
+            font-size: 22px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+
         @media (max-width: 768px) {
             #sidebar {
                 width: 100%;
@@ -272,16 +285,14 @@
 
             #main {
                 display: none;
-                width: 100%;
-                height: 100%;
             }
 
             body.viewing-song #sidebar {
-                display: none !important;
+                display: none;
             }
 
             body.viewing-song #main {
-                display: flex !important;
+                display: flex;
             }
 
             .btn-back {
@@ -325,9 +336,9 @@
 
         <div id="viewMode" class="view-container">
             <div class="main-header">
-                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                <div class="title-wrapper">
                     <button class="btn-back" onclick="App.closeMobileView()">←</button>
-                    <h1 id="viewTitle" style="font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></h1>
+                    <h1 id="viewTitle"></h1>
                 </div>
                 <button onclick="App.showEdit()">수정</button>
             </div>
