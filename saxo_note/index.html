@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>색소폰 악보장</title>
+    <style>
+        :root {
+            --bg-base: #1e1f22;
+            --bg-sidebar: #2b2d31;
+            --bg-main: #313338;
+            --bg-hover: #3f4147;
+            --bg-input: #1e1f22;
+            --text-normal: #dbdee1;
+            --text-muted: #949ba4;
+            --text-bright: #f2f3f5;
+            --accent: #5865F2;
+            --accent-hover: #4752C4;
+            --danger: #da373c;
+            --danger-hover: #a12828;
+            --line-color: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-normal);
+            display: flex;
+            height: 100vh;
+            height: -webkit-fill-available;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .header-panel {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        h1, h2 {
+            margin: 0;
+            color: var(--text-bright);
+        }
+
+        h2 {
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        #songList {
+            overflow-y: auto;
+            padding: 12px;
+            flex-grow: 1;
+        }
+
+        .song-item {
+            padding: 14px 12px;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            word-break: break-all;
+        }
+
+        .song-item:hover, .song-item.active {
+            background-color: var(--bg-hover);
+            color: var(--text-bright);
+        }
+
+        #main {
+            flex-grow: 1;
+            background-color: var(--bg-main);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .view-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            transform: translateY(6px);
+            overflow-y: auto;
+        }
+
+        .view-container.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            gap: 12px;
+        }
+
+        input, textarea {
+            background-color: var(--bg-input);
+            border: 1px solid transparent;
+            color: var(--text-normal);
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--accent);
+        }
+
+        input {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        textarea {
+            flex-grow: 1;
+            resize: none;
+            font-size: 20px;
+            line-height: 2.2;
+            font-family: 'Courier New', Courier, monospace;
+            background-image: linear-gradient(transparent 95%, var(--line-color) 95%);
+            background-size: 100% 2.2em;
+            background-attachment: local;
+            min-height: 200px;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 20px;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        .btn-back {
+            display: none;
+            background-color: transparent;
+            padding: 6px 10px;
+            font-size: 16px;
+            color: var(--text-muted);
+            box-shadow: none;
+        }
+
+        .notes-display {
+            font-size: 22px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .note-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            background-color: rgba(0, 0, 0, 0.15);
+            border-radius: 6px;
+            border-bottom: 2px solid var(--line-color);
+        }
+
+        .note-row:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.25);
+        }
+
+        .line-number {
+            font-size: 13px;
+            color: var(--text-muted);
+            width: 32px;
+            user-select: none;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .line-content {
+            flex-grow: 1;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        #emptyMode {
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            #sidebar {
+                width: 100%;
+                height: 100%;
+            }
+
+            #main {
+                height: 100%;
+                display: none;
+            }
+
+            body.viewing-song #sidebar {
+                display: none;
+            }
+
+            body.viewing-song #main {
+                display: flex;
+            }
+
+            .btn-back {
+                display: inline-block;
+            }
+
+            .notes-display {
+                font-size: 18px;
+            }
+            
+            textarea {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div class="header-panel">
+            <h2>내 악보</h2>
+            <button class="btn-icon" onclick="App.showAdd()">+</button>
+        </div>
+        <div id="songList"></div>
+    </div>
+
+    <div id="main">
+        <div id="emptyMode" class="view-container active">
+            <div>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5; margin-bottom: 16px;">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+                <p>곡을 선택하거나 새로운 곡을 추가하세요</p>
+            </div>
+        </div>
+
+        <div id="viewMode" class="view-container">
+            <div class="main-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn-back" onclick="App.closeMobileView()">←</button>
+                    <h1 id="viewTitle" style="font-size: 20px;"></h1>
+                </div>
+                <button onclick="App.showEdit()">수정</button>
+            </div>
+            <div id="viewNotes" class="notes-display"></div>
+        </div>
+
+        <div id="editMode" class="view-container">
+            <div class="main-header" style="border: none; margin: 0; padding: 0 0 10px 0;">
+                <button class="btn-back" onclick="App.closeMobileView()">←</button>
+                <div class="controls" style="margin-left: auto;">
+                    <button onclick="App.saveSong()">저장</button>
+                    <button id="btnDelete" class="btn-danger" onclick="App.deleteSong()">삭제</button>
+                </div>
+            </div>
+            <input type="text" id="editTitle" placeholder="곡 제목을 입력하세요" autocomplete="off">
+            <textarea id="editNotes" placeholder="도 레 미 파 솔 라 시 도...&#10;줄바꿈을 하면 자동으로 줄 구분선이 적용됩니다."></textarea>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCH8oYnjkbRMEJ9HBCMdW6hXrGQO9YnTDo",
+            authDomain: "saxo-dc255.firebaseapp.com",
+            databaseURL: "https://saxo-dc255-default-rtdb.firebaseio.com",
+            projectId: "saxo-dc255",
+            storageBucket: "saxo-dc255.firebasestorage.app",
+            messagingSenderId: "439232811519",
+            appId: "1:439232811519:web:6d48e46a1bfec0fecad7ca",
+            measurementId: "G-BW14DET5HT"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const SoundSystem = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            play(type) {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                const now = this.ctx.currentTime;
+                
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'save') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.setValueAtTime(600, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'delete') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            }
+        };
+
+        const App = {
+            songs: {},
+            currentId: null,
+
+            init() {
+                document.body.addEventListener('click', () => SoundSystem.init(), { once: true });
+                
+                const songsRef = ref(db, 'sax_songs');
+                onValue(songsRef, (snapshot) => {
+                    this.songs = snapshot.val() || {};
+                    this.renderList();
+                    if (this.currentId && this.songs[this.currentId]) {
+                        this.renderNotesDisplay(this.songs[this.currentId].notes);
+                    }
+                });
+            },
+
+            renderList() {
+                const list = document.getElementById('songList');
+                list.innerHTML = '';
+                
+                for (const [id, song] of Object.entries(this.songs)) {
+                    const div = document.createElement('div');
+                    div.className = `song-item ${this.currentId === id ? 'active' : ''}`;
+                    div.textContent = song.title;
+                    div.onclick = () => {
+                        SoundSystem.play('click');
+                        this.showView(id);
+                    };
+                    list.appendChild(div);
+                }
+            },
+
+            switchMode(mode) {
+                document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+                document.getElementById(mode).classList.add('active');
+                if (mode !== 'emptyMode') {
+                    document.body.classList.add('viewing-song');
+                } else {
+                    document.body.classList.remove('viewing-song');
+                }
+                this.renderList();
+            },
+
+            closeMobileView() {
+                this.currentId = null;
+                this.switchMode('emptyMode');
+            },
+
+            showAdd() {
+                SoundSystem.play('click');
+                this.currentId = Date.now().toString();
+                document.getElementById('editTitle').value = '';
+                document.getElementById('editNotes').value = '';
+                document.getElementById('btnDelete').style.display = 'none';
+                this.switchMode('editMode');
+                document.getElementById('editTitle').focus();
+            },
+
+            renderNotesDisplay(notesText) {
+                const container = document.getElementById('viewNotes');
+                container.innerHTML = '';
+                const lines = notesText.split('\n');
+                lines.forEach((lineText, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'note-row';
+                    const lineNum = document.createElement('span');
+                    lineNum.className = 'line-number';
+                    lineNum.textContent = String(idx + 1).padStart(2, '0');
+                    const content = document.createElement('span');
+                    content.className = 'line-content';
+                    content.textContent = lineText || ' ';
+                    row.appendChild(lineNum);
+                    row.appendChild(content);
+                    container.appendChild(row);
+                });
+            },
+
+            showView(id) {
+                this.currentId = id;
+                const song = this.songs[id];
+                document.getElementById('viewTitle').textContent = song.title;
+                this.renderNotesDisplay(song.notes);
+                this.switchMode('viewMode');
+            },
+
+            showEdit() {
+                SoundSystem.play('click');
+                const song = this.songs[this.currentId];
+                document.getElementById('editTitle').value = song.title;
+                document.getElementById('editNotes').value = song.notes;
+                document.getElementById('btnDelete').style.display = 'block';
+                this.switchMode('editMode');
+            },
+
+            async saveSong() {
+                const title = document.getElementById('editTitle').value.trim();
+                const notes = document.getElementById('editNotes').value;
+                
+                if (!title) {
+                    document.getElementById('editTitle').focus();
+                    return;
+                }
+
+                SoundSystem.play('save');
+                await set(ref(db, 'sax_songs/' + this.currentId), { title, notes });
+                this.showView(this.currentId);
+            },
+
+            async deleteSong() {
+                if (confirm('이 악보를 영구적으로 삭제하시겠습니까?')) {
+                    SoundSystem.play('delete');
+                    await remove(ref(db, 'sax_songs/' + this.currentId));
+                    this.currentId = null;
+                    this.switchMode('emptyMode');
+                }
+            }
+        };
+
+        window.App = App;
+        App.init();
+    </script>
+</body>
+</html>
